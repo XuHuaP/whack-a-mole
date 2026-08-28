@@ -123,10 +123,24 @@
     left: 50%;
     bottom: 6%;
     width: 74%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    overflow: hidden;
     transform: translateX(-50%) translateY(110%);
     transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
     filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45));
+    background: #fff;
+  }
+
+  .mole img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+    user-select: none;
+    pointer-events: none;
   }
 
   .hole.up .mole { transform: translateX(-50%) translateY(0); }
@@ -270,23 +284,8 @@
   const COMBO_BONUS = 5;        // 每层连击额外加成分
   const COMBO_CAP = 6;          // 连击加成上限(层)
 
-  // 地鼠 SVG
-  const MOLE_SVG = `
-  <svg viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="50" cy="78" rx="26" ry="10" fill="#a16207" opacity="0.5"/>
-    <circle cx="33" cy="26" r="11" fill="#8b5a2b"/>
-    <circle cx="67" cy="26" r="11" fill="#8b5a2b"/>
-    <circle cx="33" cy="26" r="5.5" fill="#d9a066"/>
-    <circle cx="67" cy="26" r="5.5" fill="#d9a066"/>
-    <ellipse cx="50" cy="48" rx="27" ry="26" fill="#8b5a2b"/>
-    <circle cx="41" cy="43" r="5.5" fill="#fff"/>
-    <circle cx="59" cy="43" r="5.5" fill="#fff"/>
-    <circle cx="42.2" cy="44" r="2.8" fill="#1c1917"/>
-    <circle cx="60.2" cy="44" r="2.8" fill="#1c1917"/>
-    <circle cx="50" cy="54" r="4.2" fill="#eab308"/>
-    <rect x="44" y="61" width="5" height="6" rx="1" fill="#fff"/>
-    <rect x="51" y="61" width="5" height="6" rx="1" fill="#fff"/>
-  </svg>`;
+  // 地鼠图片（用户上传，会裁切为圆形显示在洞里）
+  const MOLE_IMG = '<img src="mole.jpg" alt="" draggable="false">';
 
   // ---------- DOM ----------
   const grid = document.getElementById('grid');
@@ -327,7 +326,7 @@
 
       const mole = document.createElement('div');
       mole.className = 'mole';
-      mole.innerHTML = MOLE_SVG;
+      mole.innerHTML = MOLE_IMG;
 
       const fx = document.createElement('div');
       fx.className = 'hit-fx';
