@@ -91,6 +91,23 @@
     padding: 4% 4% 6% 4%;
   }
 
+  .side-avatar {
+    position: absolute;
+    top: 3%;
+    width: 13%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    z-index: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+  .side-avatar.left { left: 3%; }
+  .side-avatar.right { right: 3%; }
+  .side-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
   .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -252,6 +269,8 @@
 
     <div class="board-box">
       <div class="grid" id="grid"></div>
+      <div class="side-avatar left"><img src="top-left.jpg" alt="" draggable="false"></div>
+      <div class="side-avatar right"><img src="top-right.jpg" alt="" draggable="false"></div>
 
       <div class="overlay" id="overlay">
         <h2 id="overlay-title">打地鼠</h2>
