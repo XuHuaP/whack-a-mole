@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="打地鼠">
+<meta name="theme-color" content="#0f172a">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%2314523d'/%3E%3Cellipse cx='50' cy='72' rx='34' ry='16' fill='%23050710'/%3E%3Ccircle cx='38' cy='40' r='12' fill='%238b5a2b'/%3E%3Ccircle cx='62' cy='40' r='12' fill='%238b5a2b'/%3E%3Ccircle cx='38' cy='40' r='6' fill='%23d9a066'/%3E%3Ccircle cx='62' cy='40' r='6' fill='%23d9a066'/%3E%3Ccircle cx='50' cy='58' r='26' fill='%238b5a2b'/%3E%3Ccircle cx='42' cy='54' r='5' fill='%23fff'/%3E%3Ccircle cx='58' cy='54' r='5' fill='%23fff'/%3E%3Ccircle cx='43' cy='55' r='2.5' fill='%23000'/%3E%3Ccircle cx='59' cy='55' r='2.5' fill='%23000'/%3E%3Ccircle cx='50' cy='63' r='4' fill='%23eab308'/%3E%3C/svg%3E">
+<title>打地鼠</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(1100px 800px at 25% 20%, #166534 0%, #14532d 45%, #052e16 100%);
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    color: #f0fdf4;
+    overflow: hidden;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .game-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: min(92vw, 480px);
+    gap: 10px;
+  }
+
+  .title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #fbbf24, #f87171);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    white-space: nowrap;
+  }
+
+  .chip {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    padding: 6px 12px;
+    backdrop-filter: blur(8px);
+    font-size: 13px;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .chip b { font-size: 17px; color: #fbbf24; margin-left: 3px; font-variant-numeric: tabular-nums; }
+  .chip.time b { color: #4ade80; }
+  .chip.best b { color: #f87171; }
+
+  .board-box {
+    position: relative;
+    width: min(92vw, 62vh, 480px);
+    border-radius: 22px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #3f6212 0%, #365314 60%, #1a2e05 100%);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), inset 0 0 60px rgba(0, 0, 0, 0.35);
+    padding: 4% 4% 6% 4%;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3%;
+    width: 100%;
+  }
+
+  .hole {
+    position: relative;
+    aspect-ratio: 1 / 1.05;
+    cursor: pointer;
+    border-radius: 50% / 55%;
+    background: radial-gradient(ellipse at 50% 110%, #1c1917 0%, #0c0a09 70%);
+    box-shadow: inset 0 8px 18px rgba(0, 0, 0, 0.85), inset 0 -3px 6px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+
+  .hole::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(ellipse at 50% 100%, rgba(255, 255, 255, 0.06), transparent 55%);
+    pointer-events: none;
+  }
+
+  .mole {
+    position: absolute;
+    left: 50%;
+    bottom: 6%;
+    width: 74%;
+    transform: translateX(-50%) translateY(110%);
+    transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45));
+  }
+
+  .hole.up .mole { transform: translateX(-50%) translateY(0); }
+
+  .hole.hit .mole { transform: translateX(-50%) translateY(110%); }
+
+  .mole svg { display: block; width: 100%; height: auto; }
+
+  .hit-fx {
+    position: absolute;
+    left: 50%;
+    bottom: 38%;
+    transform: translateX(-50%) scale(0);
+    font-size: 30px;
+    font-weight: 900;
+    color: #fef08a;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 5;
+  }
+  .hole.hit .hit-fx {
+    animation: pop 0.45s ease-out forwards;
+  }
+  @keyframes pop {
+    0% { transform: translateX(-50%) scale(0.4); opacity: 0; }
+    25% { transform: translateX(-50%) scale(1.25); opacity: 1; }
+    100% { transform: translateX(-50%) scale(1) translateY(-18px); opacity: 0; }
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: rgba(2, 16, 8, 0.78);
+    backdrop-filter: blur(6px);
+    text-align: center;
+    padding: 20px;
+    z-index: 10;
+    border-radius: 22px;
+  }
+  .overlay.hidden { display: none; }
+
+  .overlay h2 {
+    font-size: 32px;
+    letter-spacing: 4px;
+    background: linear-gradient(90deg, #fbbf24, #f87171);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .overlay .tip { font-size: 14px; color: #d1fae5; line-height: 1.9; }
+  .overlay .final { font-size: 20px; color: #fbbf24; font-weight: 700; }
+
+  .btn {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    border-radius: 30px;
+    padding: 13px 42px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #451a03;
+    background: linear-gradient(135deg, #fbbf24, #f97316);
+    box-shadow: 0 8px 24px rgba(251, 191, 36, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    font-family: inherit;
+    touch-action: manipulation;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(251, 191, 36, 0.5); }
+  .btn:active { transform: translateY(0); }
+
+  .foot { font-size: 12px; color: #86efac; }
+
+  @media (max-width: 420px) {
+    .title { font-size: 20px; }
+    .chip { font-size: 12px; padding: 5px 9px; }
+    .chip b { font-size: 15px; }
+    .game-wrap { gap: 10px; padding: 12px; }
+    .hit-fx { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+  <div class="game-wrap">
+    <div class="header">
+      <div class="title">🔨 打地鼠</div>
+      <div class="chip">得分 <b id="score">0</b></div>
+      <div class="chip time">时间 <b id="time">60</b></div>
+      <div class="chip best">最高 <b id="best">0</b></div>
+    </div>
+
+    <div class="board-box">
+      <div class="grid" id="grid"></div>
+
+      <div class="overlay" id="overlay">
+        <h2 id="overlay-title">打地鼠</h2>
+        <div class="tip" id="overlay-tip">
+          地鼠从洞里冒出来<br>快用手指点它，点中一只 +10 分
+        </div>
+        <div class="final hidden" id="final-score"></div>
+        <button class="btn" id="start-btn">开始游戏</button>
+      </div>
+    </div>
+
+    <div class="foot">60 秒倒计时，看看你能打中多少只！</div>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- 配置 ----------
+  const HOLES = 9;
+  const DURATION = 60;          // 游戏时长(秒)
+  const START_SPAWN_MIN = 550;  // 初始地鼠出现间隔范围(ms)
+  const START_SPAWN_MAX = 1050;
+  const END_SPAWN_MIN = 320;    // 后期(更快)
+  const END_SPAWN_MAX = 620;
+  const MOLE_MIN = 620;         // 地鼠停留时间范围(ms)
+  const MOLE_MAX = 1150;
+  const HIT_SCORE = 10;
+
+  // 地鼠 SVG
+  const MOLE_SVG = `
+  <svg viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="50" cy="78" rx="26" ry="10" fill="#a16207" opacity="0.5"/>
+    <circle cx="33" cy="26" r="11" fill="#8b5a2b"/>
+    <circle cx="67" cy="26" r="11" fill="#8b5a2b"/>
+    <circle cx="33" cy="26" r="5.5" fill="#d9a066"/>
+    <circle cx="67" cy="26" r="5.5" fill="#d9a066"/>
+    <ellipse cx="50" cy="48" rx="27" ry="26" fill="#8b5a2b"/>
+    <circle cx="41" cy="43" r="5.5" fill="#fff"/>
+    <circle cx="59" cy="43" r="5.5" fill="#fff"/>
+    <circle cx="42.2" cy="44" r="2.8" fill="#1c1917"/>
+    <circle cx="60.2" cy="44" r="2.8" fill="#1c1917"/>
+    <circle cx="50" cy="54" r="4.2" fill="#eab308"/>
+    <rect x="44" y="61" width="5" height="6" rx="1" fill="#fff"/>
+    <rect x="51" y="61" width="5" height="6" rx="1" fill="#fff"/>
+  </svg>`;
+
+  // ---------- DOM ----------
+  const grid = document.getElementById('grid');
+  const scoreEl = document.getElementById('score');
+  const timeEl = document.getElementById('time');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlay-title');
+  const overlayTip = document.getElementById('overlay-tip');
+  const finalScoreEl = document.getElementById('final-score');
+  const startBtn = document.getElementById('start-btn');
+
+  // ---------- 状态 ----------
+  let holes = [];
+  let score, best, timeLeft, state; // idle | running | over
+  let spawnTimer, countdownTimer, moleTimer;
+  let lastHole = -1;
+
+  function loadBest() {
+    try { return parseInt(localStorage.getItem('whack-best') || '0', 10) || 0; }
+    catch { return 0; }
+  }
+  function saveBest() {
+    try { localStorage.setItem('whack-best', String(best)); } catch { /* ignore */ }
+  }
+
+  // ---------- 初始化洞 ----------
+  function buildGrid() {
+    grid.innerHTML = '';
+    holes = [];
+    for (let i = 0; i < HOLES; i++) {
+      const hole = document.createElement('div');
+      hole.className = 'hole';
+      hole.dataset.idx = i;
+
+      const mole = document.createElement('div');
+      mole.className = 'mole';
+      mole.innerHTML = MOLE_SVG;
+
+      const fx = document.createElement('div');
+      fx.className = 'hit-fx';
+      fx.textContent = '+10';
+
+      hole.appendChild(mole);
+      hole.appendChild(fx);
+
+      hole.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        onHit(i, hole);
+      });
+
+      grid.appendChild(hole);
+      holes.push({ el: hole, up: false });
+    }
+  }
+
+  function onHit(idx, el) {
+    if (state !== 'running') return;
+    if (!holes[idx].up) return; // 没冒出来的地鼠打不到
+    holes[idx].up = false;
+    el.classList.remove('up');
+    el.classList.add('hit');
+    score += HIT_SCORE;
+    scoreEl.textContent = score;
+    clearTimeout(moleTimer);
+
+    setTimeout(() => {
+      el.classList.remove('hit');
+    }, 480);
+
+    // 立即安排下一只
+    scheduleMole();
+  }
+
+  // ---------- 地鼠调度 ----------
+  function hideCurrentMole() {
+    for (let i = 0; i < HOLES; i++) {
+      if (holes[i].up) {
+        holes[i].up = false;
+        holes[i].el.classList.remove('up');
+      }
+    }
+  }
+
+  function scheduleMole() {
+    if (state !== 'running') return;
+    // 按剩余时间动态提升难度
+    const progress = 1 - timeLeft / DURATION;
+    const min = START_SPAWN_MIN + (END_SPAWN_MIN - START_SPAWN_MIN) * progress;
+    const max = START_SPAWN_MAX + (END_SPAWN_MAX - START_SPAWN_MAX) * progress;
+    const delay = min + Math.random() * (max - min);
+    spawnTimer = setTimeout(spawnMole, delay);
+  }
+
+  function spawnMole() {
+    if (state !== 'running') return;
+    hideCurrentMole();
+
+    let idx = Math.floor(Math.random() * HOLES);
+    if (idx === lastHole && HOLES > 1) idx = (idx + 1) % HOLES;
+    lastHole = idx;
+
+    holes[idx].up = true;
+    holes[idx].el.classList.add('up');
+
+    // 停留时间随机，后期稍短
+    const progress = 1 - timeLeft / DURATION;
+    const stay = MOLE_MAX - (MOLE_MAX - MOLE_MIN) * progress;
+    moleTimer = setTimeout(() => {
+      if (state === 'running') {
+        holes[idx].up = false;
+        holes[idx].el.classList.remove('up');
+        scheduleMole();
+      }
+    }, stay);
+  }
+
+  // ---------- 游戏流程 ----------
+  function start() {
+    clearTimers();
+    score = 0;
+    best = loadBest();
+    timeLeft = DURATION;
+    lastHole = -1;
+    state = 'running';
+    scoreEl.textContent = score;
+    timeEl.textContent = timeLeft;
+    bestEl.textContent = best;
+    hideCurrentMole();
+    overlay.classList.add('hidden');
+
+    countdownTimer = setInterval(() => {
+      timeLeft--;
+      timeEl.textContent = timeLeft;
+      if (timeLeft <= 0) end();
+    }, 1000);
+
+    scheduleMole();
+  }
+
+  function end() {
+    state = 'over';
+    clearTimers();
+    hideCurrentMole();
+    if (score > best) {
+      best = score;
+      saveBest();
+      bestEl.textContent = best;
+    }
+    overlayTitle.textContent = '时间到！';
+    overlayTip.innerHTML = '游戏结束';
+    finalScoreEl.classList.remove('hidden');
+    finalScoreEl.textContent = '本局得分：' + score;
+    startBtn.textContent = '再来一局';
+    overlay.classList.remove('hidden');
+  }
+
+  function clearTimers() {
+    clearInterval(countdownTimer);
+    clearTimeout(spawnTimer);
+    clearTimeout(moleTimer);
+  }
+
+  // ---------- 事件 ----------
+  startBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    start();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'Enter') {
+      if (state !== 'running') {
+        e.preventDefault();
+        start();
+      }
+    }
+  });
+
+  // ---------- 启动 ----------
+  buildGrid();
+  best = loadBest();
+  bestEl.textContent = best;
+  overlayTitle.textContent = '打地鼠';
+  overlayTip.innerHTML = '地鼠从洞里冒出来<br>快用手指点它，点中一只 +10 分';
+  finalScoreEl.classList.add('hidden');
+  startBtn.textContent = '开始游戏';
+})();
+</script>
+</body>
+</html>
